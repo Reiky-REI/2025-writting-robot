@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -41,6 +42,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+// 重复定义句柄函数
+// TIM_HandleTypeDef htim3;
+// TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
 
@@ -48,6 +52,9 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
+// 重复申明 HAL_TIM_PeriodElapsedCallback 函数
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -86,8 +93,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   
+  // Set the PWM duty cycle to 50% for all channels
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -97,6 +116,26 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+    // Set the PWM duty cycle to 50% for all channels
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, 500);
+    HAL_Delay(1000);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_4, 500);
+    HAL_Delay(1000);
+
+
   }
   /* USER CODE END 3 */
 }
@@ -143,6 +182,27 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
