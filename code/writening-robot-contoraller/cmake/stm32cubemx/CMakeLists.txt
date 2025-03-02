@@ -18,6 +18,9 @@ target_include_directories(stm32cubemx INTERFACE
     ../../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
     ../../Drivers/CMSIS/Device/ST/STM32F1xx/Include
     ../../Drivers/CMSIS/Include
+
+    # 用户导入的外部函数库
+    ../../Core/Inc/User
 )
 
 target_sources(stm32cubemx INTERFACE
@@ -43,6 +46,10 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/sysmem.c
     ../../Core/Src/syscalls.c
     ../../startup_stm32f103xb.s
+
+    # 用户导入的外部函数库
+    ../../Core/Src/User/servo.c
+    ../../Core/Src/User/servo_init.c
 )
 
 target_link_directories(stm32cubemx INTERFACE
