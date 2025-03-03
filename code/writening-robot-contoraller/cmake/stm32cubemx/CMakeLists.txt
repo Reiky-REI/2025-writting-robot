@@ -14,24 +14,25 @@ target_compile_definitions(stm32cubemx INTERFACE
 
 target_include_directories(stm32cubemx INTERFACE
     ../../Core/Inc
+    ../../Core/Inc/User
     ../../Drivers/STM32F1xx_HAL_Driver/Inc
     ../../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
     ../../Drivers/CMSIS/Device/ST/STM32F1xx/Include
     ../../Drivers/CMSIS/Include
-
-    # 用户导入的外部函数库
-    ../../Core/Inc/User
 )
 
 target_sources(stm32cubemx INTERFACE
     ../../Core/Src/main.c
     ../../Core/Src/gpio.c
+    ../../Core/Src/usart.c
+    ../../Core/Src/usb.c
     ../../Core/Src/stm32f1xx_it.c
     ../../Core/Src/stm32f1xx_hal_msp.c
     ../../Core/Src/stm32f1xx_hal_timebase_tim.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
@@ -42,14 +43,13 @@ target_sources(stm32cubemx INTERFACE
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd_ex.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usb.c
     ../../Core/Src/system_stm32f1xx.c
     ../../Core/Src/sysmem.c
     ../../Core/Src/syscalls.c
     ../../startup_stm32f103xb.s
-
-    # 用户导入的外部函数库
-    ../../Core/Src/User/servo.c
-    ../../Core/Src/User/servo_init.c
 )
 
 target_link_directories(stm32cubemx INTERFACE

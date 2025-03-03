@@ -49,10 +49,16 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
 )
+# 添加 src/user 下的所有 .c 文件
+file(GLOB USER_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/user/*.c")
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    ${USER_SOURCES}
+)
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    "${CMAKE_CURRENT_SOURCE_DIR}/inc/user"
 )
 
 # Add project symbols (macros)

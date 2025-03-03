@@ -2,15 +2,16 @@
     "version": 4,
     "configurations": [
         {
-            /** 
-             * ms-vscode.cmake-tools plugin should be installed.
-             * 
-             * It provides data for C/C++ plugin,
-             * such as include paths, browse paths, defines, etc.
-             */
             "name": "STM32",
             "configurationProvider": "ms-vscode.cmake-tools",
-            "intelliSenseMode": "${default}"
+            "intelliSenseMode": "${default}",
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/**"
+            ],
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "compilerPath": "C:/Users/reiky/AppData/Local/Microsoft/WinGet/Packages/MartinStorsjo.LLVM-MinGW.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/llvm-mingw-20250114-ucrt-x86_64/bin/clang++.exe"
         }
     ]
 }

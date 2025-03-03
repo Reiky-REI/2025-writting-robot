@@ -1,5 +1,11 @@
 {
     "files.associations": {
-        "main.h": "c"
+        "main.h": "c",
+        "servo_init.h": "c",
+        "stm32f1xx_hal.h": "c",
+        "servo.h": "c",
+        "usart.h": "c",
+        "stm32f1xx_hal_uart.h": "c",
+        "stm32f1xx.h": "c"
     }
 }
