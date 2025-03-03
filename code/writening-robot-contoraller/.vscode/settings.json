@@ -6,6 +6,7 @@
         "servo.h": "c",
         "usart.h": "c",
         "stm32f1xx_hal_uart.h": "c",
-        "stm32f1xx.h": "c"
+        "stm32f1xx.h": "c",
+        "hal_servo.h": "c"
     }
 }

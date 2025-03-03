@@ -92,14 +92,14 @@ HAL_StatusTypeDef DaRan_HAL_set_angles(UART_HandleTypeDef *huart, int id_list[20
 			{
 				if(id_list[i] != 0)
 				{
-					status = preset_angle(huart, id_list[i], angle_list[i], step, n, timeout);
+					status = DaRan_HAL_preset_angle(huart, id_list[i], angle_list[i], step, n, timeout);
 					if(status != HAL_OK) return status;
 					HAL_Delay(2);
 				}
 			}
 			else
 			{
-				status = preset_angle(huart, id_list[i], angle_list[i], step, 0, timeout);
+				status = DaRan_HAL_preset_angle(huart, id_list[i], angle_list[i], step, 0, timeout);
 				if(status != HAL_OK) return status;
 				HAL_Delay(2);
 			}
@@ -236,24 +236,24 @@ HAL_StatusTypeDef DaRan_HAL_preset_angle(UART_HandleTypeDef *huart, int id_num, 
  */
 HAL_StatusTypeDef DaRan_HAL_change_mode(UART_HandleTypeDef *huart, int id_num, int mode_num, uint32_t timeout)
 {
-	/* 设置timeout缺省值 */
-	if(timeout == 0) timeout = 60000;	// 默认60秒超时
-	if(mode_num == 0) mode_num = 1;    // 默认阻尼模式
-	
-	servo_sdata[0] = 0x7B;	// 帧头:123
-	servo_sdata[1] = id_num;	// 舵机ID
-	servo_sdata[2];	// 角度高位(占位)
-	servo_sdata[3];	// 角度低位(占位)
-	servo_sdata[4];	// 步数高位(占位)
-	servo_sdata[5];	// 步数低位(占位)
-	
-	servo_sdata[7] = 0x10;	// 功能选择:16
-	servo_sdata[8] = 0x10 + mode_num;	// 模式选择
-	servo_sdata[9] = 0x7D;	// 帧尾:125
-	/* 校验 */
-	servo_sdata[6] = (servo_sdata[1]+servo_sdata[2]+servo_sdata[3]+servo_sdata[4]+servo_sdata[5]+servo_sdata[7]+servo_sdata[8])%100;
-	
-	return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    /* 设置timeout缺省值 */
+    if(timeout == 0) timeout = 60000;	// 默认60秒超时
+    if(mode_num == 0) mode_num = 1;    // 默认阻尼模式
+
+    servo_sdata[0] = 0x7B;   // 帧头:123
+    servo_sdata[1] = id_num; // 舵机ID
+    //servo_sdata[2];        // 注释掉未使用
+    //servo_sdata[3];        // 注释掉未使用
+    //servo_sdata[4];        // 注释掉未使用
+    //servo_sdata[5];        // 注释掉未使用
+
+    servo_sdata[7] = 0x10;            // 功能选择:16
+    servo_sdata[8] = 0x10 + mode_num; // 模式选择
+    servo_sdata[9] = 0x7D;            // 帧尾:125
+    /* 校验 */
+    servo_sdata[6] = (servo_sdata[1] + 0 + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
+
+    return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
 }
 
 /** 5
@@ -268,46 +268,46 @@ HAL_StatusTypeDef DaRan_HAL_change_mode(UART_HandleTypeDef *huart, int id_num, i
  */
 HAL_StatusTypeDef DaRan_HAL_set_id(UART_HandleTypeDef *huart, int id_num, int id_new, uint32_t timeout)
 {
-	HAL_StatusTypeDef status;
+    HAL_StatusTypeDef status;
 
-	/* 设置timeout缺省值 */
-	if(timeout == 0) timeout = 60000;	// 默认60秒超时
-	if(id_new == 0) id_new = id_num;    // 默认不改变ID
-	
-	servo_sdata[0] = 0x7B;	// 帧头:123
-	servo_sdata[1] = id_num;	// 舵机ID
-	servo_sdata[2];// 角度高位(占位)
-	servo_sdata[3];// 角度低位(占位)
-	servo_sdata[4];// 步数高位(占位)
-	servo_sdata[5];// 步数低位(占位)
-	
-	servo_sdata[7] = 0x42;	// 功能选择
-	servo_sdata[8] = 0;	// 模式选择
-	servo_sdata[9] = 0x7D;	// 帧尾:125
-	/* 校验 */
-	servo_sdata[6] = (servo_sdata[1]+servo_sdata[2]+servo_sdata[3]+servo_sdata[4]+servo_sdata[5]+servo_sdata[7]+servo_sdata[8])%100;
-	
-	/* 发送数据 */
-	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
-	if(status != HAL_OK) return status;
-	
-	else HAL_Delay(2);
-	/* 设置新ID */
-	servo_sdata[0] = 123;	// 帧头
-	servo_sdata[1] = id_num;	// 舵机ID
-  	servo_sdata[2] = id_new;	// 新ID
-	servo_sdata[3];	// 角度低位(占位)
-	servo_sdata[4];	// 步数高位(占位)
-	servo_sdata[5];	// 步数低位(占位)
+    /* 设置timeout缺省值 */
+    if(timeout == 0) timeout = 60000;	// 默认60秒超时
+    if(id_new == 0) id_new = id_num;    // 默认不改变ID
 
-	servo_sdata[7] = 0x44;	// 功能选择
-	servo_sdata[8] = 0;	// 模式选择
-	servo_sdata[9] = 125;	// 帧尾
-	/* 校验 */
-	servo_sdata[6] = (servo_sdata[1]+servo_sdata[2]+servo_sdata[3]+servo_sdata[4]+servo_sdata[5]+servo_sdata[7]+servo_sdata[8])%100;
-	
-	/* 发送数据 */
-	return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    servo_sdata[0] = 0x7B;   // 帧头:123
+    servo_sdata[1] = id_num; // 舵机ID
+    //servo_sdata[2];         // 注释掉未使用
+    //servo_sdata[3];         // 注释掉未使用
+    //servo_sdata[4];         // 注释掉未使用
+    //servo_sdata[5];         // 注释掉未使用
+
+    servo_sdata[7] = 0x42;   // 功能选择
+    servo_sdata[8] = 0;      // 模式选择
+    servo_sdata[9] = 0x7D;   // 帧尾:125
+    /* 校验 */
+    servo_sdata[6] = (servo_sdata[1] + 0 + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
+
+    /* 发送数据 */
+    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    if(status != HAL_OK) return status;
+
+    HAL_Delay(2);
+    /* 设置新ID */
+    servo_sdata[0] = 123;    // 帧头
+    servo_sdata[1] = id_num; // 舵机ID
+    servo_sdata[2] = id_new; // 新ID
+    //servo_sdata[3];         // 注释掉未使用
+    //servo_sdata[4];         // 注释掉未使用
+    //servo_sdata[5];         // 注释掉未使用
+
+    servo_sdata[7] = 0x44;   // 功能选择
+    servo_sdata[8] = 0;      // 模式选择
+    servo_sdata[9] = 125;    // 帧尾
+    /* 校验 */
+    servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
+
+    /* 发送数据 */
+    return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
 }
 
 /** 6
@@ -323,70 +323,55 @@ HAL_StatusTypeDef DaRan_HAL_set_id(UART_HandleTypeDef *huart, int id_num, int id
  */
 HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char pid, uint32_t value, uint32_t timeout)
 {
-	HAL_StatusTypeDef status;
-	uint8_t mode_select;
+    HAL_StatusTypeDef status;
+    uint8_t mode_select;
 
-	// 根据pid字符选择对应的模式，3:P, 4:I, 5:D
-	switch(pid) {
-		case 'P':
-		case 'p':
-			mode_select = 3;
-			break;
-		case 'I':
-		case 'i':
-			mode_select = 4;
-			break;
-		case 'D':
-		case 'd':
-			mode_select = 5;
-			break;
-		default:
-			return HAL_ERROR; // 无效的pid参数
-	}
+    switch(pid) {
+        case 'P':
+        case 'p': mode_select = 3; break;
+        case 'I':
+        case 'i': mode_select = 4; break;
+        case 'D':
+        case 'd': mode_select = 5; break;
+        default: return HAL_ERROR;
+    }
 
-	/* 设置timeout缺省值 */
-	if(timeout == 0) timeout = 60000;  // 默认60秒超时
+    /* 设置timeout缺省值 */
+    if(timeout == 0) timeout = 60000;  // 默认60秒超时
 
-	/* 第一步：进入PID设置模式 */
-	servo_sdata[0] = 0x7B;           // 帧头
-	servo_sdata[1] = id_num;         // 舵机ID
-	servo_sdata[2];	// 占位
-	servo_sdata[3];	// 占位
-	servo_sdata[4];	// 占位
-	servo_sdata[5];	// 占位
+    /* 第一步：进入PID设置模式 */
+    servo_sdata[0] = 0x7B;         // 帧头
+    servo_sdata[1] = id_num;       // 舵机ID
+    //servo_sdata[2];              // 注释掉未使用
+    //servo_sdata[3];              // 注释掉未使用
+    //servo_sdata[4];              // 注释掉未使用
+    //servo_sdata[5];              // 注释掉未使用
 
-	servo_sdata[7] = 0x42;           // 功能选择
-	servo_sdata[8] = 0;              // 模式选择
-	servo_sdata[9] = 0x7D;           // 帧尾
+    servo_sdata[7] = 0x42;         // 功能选择
+    servo_sdata[8] = 0;            // 模式选择
+    servo_sdata[9] = 0x7D;         // 帧尾
 
-	/* 校验和 */
-	servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] +
-					  servo_sdata[4] + servo_sdata[5] + servo_sdata[7] +
-					  servo_sdata[8]) % 100;
+    servo_sdata[6] = (servo_sdata[1] + 0 + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
 
-	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
-	if (status != HAL_OK) return status;
-	HAL_Delay(2);
+    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    if (status != HAL_OK) return status;
+    HAL_Delay(2);
 
-	/* 第二步：发送新的PID参数值 */
-	servo_sdata[0] = 123;          // 帧头
-	servo_sdata[1] = id_num;        // 舵机ID
-	servo_sdata[2] = value % 100;   // 参数低位
-	servo_sdata[3] = value / 100;   // 参数高位
-	servo_sdata[4];	// 占位
-	servo_sdata[5];	// 占位
+    /* 第二步：发送新的PID参数值 */
+    servo_sdata[0] = 123;        // 帧头
+    servo_sdata[1] = id_num;     // 舵机ID
+    servo_sdata[2] = value % 100;
+    servo_sdata[3] = value / 100;
+    //servo_sdata[4];             // 注释掉未使用
+    //servo_sdata[5];             // 注释掉未使用
 
-	servo_sdata[7] = 0x44;         // 功能选择：重置PID值
-	servo_sdata[8] = mode_select;  // 模式选择（3:P, 4:I, 5:D）
-	servo_sdata[9] = 125;          // 帧尾
+    servo_sdata[7] = 0x44;       // 功能选择
+    servo_sdata[8] = mode_select;// 模式选择
+    servo_sdata[9] = 125;        // 帧尾
 
-	/* 校验和 */
-	servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] +
-					  servo_sdata[4] + servo_sdata[5] + servo_sdata[7] +
-					  servo_sdata[8]) % 100;
+    servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
+    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    HAL_Delay(2);
 
-	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
-	HAL_Delay(2);
-
-	return status;
+    return status;
 }

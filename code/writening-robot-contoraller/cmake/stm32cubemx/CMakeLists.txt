@@ -14,7 +14,6 @@ target_compile_definitions(stm32cubemx INTERFACE
 
 target_include_directories(stm32cubemx INTERFACE
     ../../Core/Inc
-    ../../Core/Inc/User
     ../../Drivers/STM32F1xx_HAL_Driver/Inc
     ../../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
     ../../Drivers/CMSIS/Device/ST/STM32F1xx/Include
