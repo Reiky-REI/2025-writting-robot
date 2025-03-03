@@ -20,7 +20,7 @@ HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num,
 	HAL_StatusTypeDef status;	// 用于存储HAL库函数返回值
 	
 	/* 设置timeout缺省值 */
-	if(timeout == 0) timeout = 60000;	// 默认60秒超时
+	if(timeout == 0) timeout = 1000;	// 默认60秒超时
 
 	/* 参数范围检查 */
 	if(step <= 0)   step = 1;    // 步数最小为1
@@ -37,7 +37,7 @@ HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num,
 
 	servo_sdata[7] = 16;                        // 功能选择,0x10
 	servo_sdata[8] = 0x1;                       // 模式选择
-	servo_sdata[9] = 0x7D;                      // 帧尾
+	servo_sdata[9] = 0x7D;                       // 帧尾
 	
 	/* 计算校验和 */
 	servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 
@@ -47,13 +47,18 @@ HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num,
 	/* 发送第一个命令包 */
 	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
 	if (status != HAL_OK) return status;
-	
+	// /* 等待UART状态为READY */
+	// while (huart->gState != HAL_UART_STATE_READY)
+	// {
+	// 	HAL_Delay(1);  // 延迟1毫秒
+	// }
+
 	/* 修改为第二个命令包并发送 */
 	servo_sdata[7] = 17;                        // 功能选择,0x11
 	servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 
 									 servo_sdata[4] + servo_sdata[5] + servo_sdata[7] + 
 									 servo_sdata[8]) % 100;     // 更新校验和
-	
+	// HAL_UART_Receive(huart, (uint8_t*)servo_rdata, 16,timeout);  // 开启接收中断
 	return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
 }
 
@@ -331,7 +336,7 @@ HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char 
         case 'p': mode_select = 3; break;
         case 'I':
         case 'i': mode_select = 4; break;
-        case 'D':
+        case 'D':	
         case 'd': mode_select = 5; break;
         default: return HAL_ERROR;
     }

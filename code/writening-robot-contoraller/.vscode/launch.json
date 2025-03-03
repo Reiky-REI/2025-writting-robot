@@ -5,81 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Build & Debug Microcontroller - ST-Link",
             "cwd": "${workspaceFolder}",
-            "executable": "./bin/executable.elf",
-            "name": "Debug with ST-Link",
-            "request": "launch",
             "type": "cortex-debug",
-            "runToEntryPoint": "main",
-            "showDevDebugOutput": "none",
+            "executable": "${command:cmake.launchTargetPath}",
+            // Let CMake extension decide executable: "${command:cmake.launchTargetPath}"
+            // Or fixed file path: "${workspaceFolder}/path/to/filename.elf"
+            "request": "launch",
             "servertype": "stlink",
-            // 选择与你目标 MCU 相匹配的 device，这里使用 STM32F103C8Tx 示例
-            "device": "STM32F103C8Tx",
-            // 设置 ST-Link 类型（v2 为 true，v1 为 false）根据实际情况调整
-            "v2": true,
-            // 使用通用路径配置，确保与你的 STM32VSCodeExtension 配置保持一致
+            "device": "STM32F103C8Tx", //MCU used
+            "interface": "swd",
+            "serialNumber": "",        //Set ST-Link ID if you use multiple at the same time
+            "runToEntryPoint": "main",
+            "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
+            "v2": false,               //Change it depending on ST Link version
             "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
-            "stm32cubeprogrammer": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
-            "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
+            "stm32cubeprogrammer":"${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
+            "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",   
             "armToolchainPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin",
-            "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
-            // 根据需要设置 gdb-server 参数
+            "gdbPath":"${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",            
             "serverArgs": [
-                "-m", "1"
-            ]
-        }
-        },
-
-        
-        // {
-        //     "cwd": "${workspaceFolder}",
-        //     "executable": "${command:STM32VSCodeExtension.bootFlashBootTarget}",
-        //     "name": "Debug Boot Project with ST-Link",
-        //     "device": "STM32F107C8T6", //MCU used
-        //     "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H7S.svd",
-        //     "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
-        //     "stm32cubeprogrammer": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
-        //     "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
-        //     "armToolchainPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin",
-        //     "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
-        //     "v2": true,               // Set to true for ST-Link V2
-        //     "serverArgs": [
-        //     "-m", "1"
-        //     ],
-        //     "request": "launch",
-        //     "type": "cortex-debug",
-        //     "runToEntryPoint": "main",
-        //     "showDevDebugOutput": "none",
-        //     "servertype": "stlink"
-        // },
-
-        // {
-        //     "name": "Build & Debug Microcontroller - ST-Link",
-        //     "cwd": "${workspaceFolder}",
-        //     "type": "cortex-debug",
-        //     "executable": "${command:cmake.launchTargetPath}",
-        //     // Let CMake extension decide executable: "${command:cmake.launchTargetPath}"
-        //     // Or fixed file path: "${workspaceFolder}/path/to/filename.elf"
-        //     "request": "launch",
-        //     "servertype": "stlink",
-        //     "device": "STM32F103C8Tx", //MCU used
-        //     "interface": "swd",
-        //     "serialNumber": "",        //Set ST-Link ID if you use multiple at the same time
-        //     "runToEntryPoint": "main",
-        //     "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
-        //     "v2": false,               //Change it depending on ST Link version
-        //     "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
-        //     "stm32cubeprogrammer":"${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
-        //     "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",   
-        //     "armToolchainPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin",
-        //     "gdbPath":"${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",            
-        //     "serverArgs": [
-        //         "-m","0",
-        //     ],
+                "-m","0",
+            ],
         //     //"preLaunchTask": "Build + Flash"
         //     /* If you use external loader, add additional arguments */
         //     //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
-        // },
+        },
         {
             "name": "Attach to Microcontroller - ST-Link",
             "cwd": "${workspaceFolder}",
