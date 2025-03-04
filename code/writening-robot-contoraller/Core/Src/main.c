@@ -104,18 +104,21 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     // HAL_Delay(5000);
-    DaRan_HAL_set_angle(&huart1, 1, 180, 10, 1000);
-    HAL_Delay(5000);
-    // DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
-    // HAL_Delay(5000);
-    // DaRan_HAL_set_angle(&huart1, 1, 0, 10, 200);
-    // HAL_Delay(5000);
+
+    DaRan_HAL_set_angle(&huart1, 1, 180, 10, 200);
+    HAL_Delay(600);
+    DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
+    HAL_Delay(600);
+    DaRan_HAL_set_angle(&huart1, 1, 0, 10, 200);
+    HAL_Delay(600);
+    DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
+    HAL_Delay(600);
 
     // /* 测试程序状态 */
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    HAL_Delay(1000);
+    // HAL_Delay(1000);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    HAL_Delay(1000);
+    // HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -135,7 +138,7 @@ void SystemClock_Config(void)
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV2;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;

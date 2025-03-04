@@ -1,8 +1,8 @@
 #include "HAL_Servo.h"
 
-int servo_sdata[10]={ 0x7b,0x79,0,0,0,0,0x10,0x10,0x10,0x7d };  //发送数组  10bit
-int servo_sdata_short[4]={0x7E,0,0,0};	//发送数组  4bit,原名：servo_sdata1
-int servo_rdata[16]={0x7b,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7d};    //舵机返回值存放数组 16bit
+uint8_t servo_sdata[10]={ 0x7b,0x79,0,0,0,0,0x10,0x10,0x10,0x7d };  //发送数组  10bit
+uint8_t servo_sdata_short[4]={0x7E,0,0,0};	//发送数组  4bit,原名：servo_sdata1
+uint8_t servo_rdata[16]={0x7b,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7d};    //舵机返回值存放数组 16bit
 
 /** 1
  * @fn HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num, float angle, uint16_t step, uint32_t timeout)
@@ -37,7 +37,7 @@ HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num,
 
 	servo_sdata[7] = 16;                        // 功能选择,0x10
 	servo_sdata[8] = 0x1;                       // 模式选择
-	servo_sdata[9] = 0x7D;                       // 帧尾
+	servo_sdata[9] = 0x7D;                      // 帧尾
 	
 	/* 计算校验和 */
 	servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 
@@ -45,21 +45,14 @@ HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num,
 									 servo_sdata[8]) % 100;     // 校验和
 									 
 	/* 发送第一个命令包 */
-	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
-	if (status != HAL_OK) return status;
-	// /* 等待UART状态为READY */
-	// while (huart->gState != HAL_UART_STATE_READY)
-	// {
-	// 	HAL_Delay(1);  // 延迟1毫秒
-	// }
-
+	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
+	
 	/* 修改为第二个命令包并发送 */
 	servo_sdata[7] = 17;                        // 功能选择,0x11
 	servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 
 									 servo_sdata[4] + servo_sdata[5] + servo_sdata[7] + 
 									 servo_sdata[8]) % 100;     // 更新校验和
-	// HAL_UART_Receive(huart, (uint8_t*)servo_rdata, 16,timeout);  // 开启接收中断
-	return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+	return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata,  sizeof(servo_sdata), timeout);
 }
 
 /** 2
@@ -118,7 +111,7 @@ HAL_StatusTypeDef DaRan_HAL_set_angles(UART_HandleTypeDef *huart, int id_list[20
 						 servo_sdata[4] + servo_sdata[5] + servo_sdata[7] + 
 						 servo_sdata[8]) % 100;  // 更新校验和
 		
-		return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+		return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
 	}
 	else if(n == 2)
 	{
@@ -131,7 +124,7 @@ HAL_StatusTypeDef DaRan_HAL_set_angles(UART_HandleTypeDef *huart, int id_list[20
 				servo_sdata_short[2] = ((int)angle_list[i] / 10) % 100;  // 角度高位
 				servo_sdata_short[3] = ((int)angle_list[i] * 10) % 100;  // 角度低位
 				
-				status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata_short, 4, timeout);
+				status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata_short, sizeof(servo_sdata_short), timeout);
 				if(status != HAL_OK) return status;
 				HAL_Delay(2);
 			}
@@ -143,7 +136,7 @@ HAL_StatusTypeDef DaRan_HAL_set_angles(UART_HandleTypeDef *huart, int id_list[20
 		servo_sdata_short[2] = (int)(step % 100);
 		servo_sdata_short[3] = 0x7F;
 		
-		return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata_short, 4, timeout);
+		return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata_short, sizeof(servo_sdata), timeout);
 	}
 	
 	return HAL_ERROR;  // 如果n不是1或2，返回错误
@@ -207,7 +200,7 @@ HAL_StatusTypeDef DaRan_HAL_preset_angle(UART_HandleTypeDef *huart, int id_num, 
 		servo_sdata[3]+servo_sdata[4]+servo_sdata[5]+
 		servo_sdata[7]+servo_sdata[8])%100;	// 校验和
 	
-	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+	status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
 	if(status != HAL_OK) return status;
 
 	if(rn==0)
@@ -217,7 +210,7 @@ HAL_StatusTypeDef DaRan_HAL_preset_angle(UART_HandleTypeDef *huart, int id_num, 
 			servo_sdata[3]+servo_sdata[4]+servo_sdata[5]+
 			servo_sdata[7]+servo_sdata[8])%100;	// 更新校验和
 
-		return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+		return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
 	}
 	
 	return HAL_OK;
@@ -258,7 +251,7 @@ HAL_StatusTypeDef DaRan_HAL_change_mode(UART_HandleTypeDef *huart, int id_num, i
     /* 校验 */
     servo_sdata[6] = (servo_sdata[1] + 0 + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
 
-    return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
 }
 
 /** 5
@@ -293,7 +286,7 @@ HAL_StatusTypeDef DaRan_HAL_set_id(UART_HandleTypeDef *huart, int id_num, int id
     servo_sdata[6] = (servo_sdata[1] + 0 + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
 
     /* 发送数据 */
-    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
     if(status != HAL_OK) return status;
 
     HAL_Delay(2);
@@ -312,7 +305,7 @@ HAL_StatusTypeDef DaRan_HAL_set_id(UART_HandleTypeDef *huart, int id_num, int id
     servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
 
     /* 发送数据 */
-    return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    return HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
 }
 
 /** 6
@@ -358,7 +351,7 @@ HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char 
 
     servo_sdata[6] = (servo_sdata[1] + 0 + 0 + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
 
-    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
     if (status != HAL_OK) return status;
     HAL_Delay(2);
 
@@ -375,7 +368,7 @@ HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char 
     servo_sdata[9] = 125;        // 帧尾
 
     servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 0 + 0 + servo_sdata[7] + servo_sdata[8]) % 100;
-    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, 10, timeout);
+    status = HAL_UART_Transmit(huart, (uint8_t*)servo_sdata, sizeof(servo_sdata), timeout);
     HAL_Delay(2);
 
     return status;
