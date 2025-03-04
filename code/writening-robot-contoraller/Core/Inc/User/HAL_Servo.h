@@ -112,5 +112,49 @@ HAL_StatusTypeDef DaRan_HAL_set_id(UART_HandleTypeDef *huart, int id_num, int id
  */
 HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char pid, uint32_t value, uint32_t timeout);
 
+/** 7
+ * @fn float DaRan_HAL_get_state(UART_HandleTypeDef *huart, int id_num, int para_num, int o_m, uint32_t timeout)
+ * @brief 获取当前舵机状态信息，例如当前角度等
+ * 
+ * 获取当前舵机状态，包括
+ *  - 舵机编号
+ *  - 当前实际角度
+ *  - 当前期望角度
+ *  - 到达期望角度剩余的步数
+ * 
+ * @param huart    UART句柄，指定使用的UART外设
+ * @param id_num   舵机编号,查询第几号舵机的模式，这里不可以用广播模式
+ * @param para_num 想要查询的参数编号
+ *                 para_num=0, 返回所有信息组成的列表
+ *                 para_num=1, 返回当前舵机编号
+ *                 para_num=2, 返回当前角度
+ *                 para_num=3, 返回当前期望角度
+ *                 para_num=4, 返回运行时长
+ * @param o_m      用来指明多个舵机(o_m=0)还是一个舵机，如果只有一个舵机可以采用广播模式，此时o_m=1
+ * @param timeout  UART发送超时时间(毫秒)
+ * @return float   返回值会根据para_num的值相应改变
+ *                 para_num=0, 返回所有信息组成的列表
+ *                 para_num=1, 返回当前舵机编号
+ *                 para_num=2, 返回当前角度
+ *                 para_num=3, 返回当前期望角度
+ *                 para_num=4, 返回运行时长
+ * @note 如果多个舵机连接时，查询指令使用了广播模式，会return 0,不执行查询指令
+ */
+float DaRan_HAL_get_state(UART_HandleTypeDef *huart, int id_num, int para_num, int o_m, uint32_t timeout);
+
+/** 8
+ * @brief 解锁舵机的堵转保护状态
+ * 
+ * 当舵机进入堵转保护状态（如过载保护）后，不会响应转动命令。
+ * 排除导致保护状态的原因（如负载过大）后，可调用此函数或重新上电
+ * 解除保护状态，使舵机重新正常工作。
+ * 
+ * @param huart   指定使用的UART外设的句柄
+ * @param id_num  要解锁的舵机编号
+ * @param timeout UART发送的超时时间（毫秒）
+ * @return HAL_StatusTypeDef 如果成功则返回HAL_OK，否则返回错误状态
+ */
+HAL_StatusTypeDef unlock_stall(UART_HandleTypeDef *huart, int id_num, uint32_t timeout);
+
 
 #endif

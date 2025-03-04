@@ -373,3 +373,108 @@ HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char 
 
     return status;
 }
+
+/** 7
+ * @fn float DaRan_HAL_get_state(UART_HandleTypeDef *huart, int id_num, int para_num, int o_m, uint32_t timeout)
+ * @brief 获取当前舵机状态信息，例如当前角度等
+ * 
+ * 获取当前舵机状态，包括
+ *  - 舵机编号
+ *  - 当前实际角度
+ *  - 当前期望角度
+ *  - 到达期望角度剩余的步数
+ * 
+ * @param huart    UART句柄，指定使用的UART外设
+ * @param id_num   舵机编号,查询第几号舵机的模式，这里不可以用广播模式
+ * @param para_num 想要查询的参数编号
+ *                 para_num=0, 返回所有信息组成的列表
+ *                 para_num=1, 返回当前舵机编号
+ *                 para_num=2, 返回当前角度
+ *                 para_num=3, 返回当前期望角度
+ *                 para_num=4, 返回运行时长
+ * @param o_m      用来指明多个舵机(o_m=0)还是一个舵机，如果只有一个舵机可以采用广播模式，此时o_m=1
+ * @param timeout  UART发送超时时间(毫秒)
+ * @return float   返回值会根据para_num的值相应改变
+ *                 para_num=0, 返回所有信息组成的列表
+ *                 para_num=1, 返回当前舵机编号
+ *                 para_num=2, 返回当前角度
+ *                 para_num=3, 返回当前期望角度
+ *                 para_num=4, 返回运行时长
+ * @note 如果多个舵机连接时，查询指令使用了广播模式，会return 0,不执行查询指令
+ */
+float DaRan_HAL_get_state(UART_HandleTypeDef *huart, int id_num, int para_num, int o_m, uint32_t timeout)
+{
+	/* 多舵机连接时如果使用广播模式，返回0且不执行查询指令 */
+	if ((id_num == 121 && o_m == 0) || (id_num == 121 && o_m > 1)) return 0;
+
+	/* 构建查询指令数据包 */
+	uint8_t txData[10] = {0x7B, id_num, 0, 0, 0, 0, 0, 0x13, 0, 0x7D};
+	/* 计算校验和：所有数据和取模100 */
+	txData[6] = (txData[1] + txData[2] + txData[3] + txData[4]
+			   + txData[5] + txData[7] + txData[8]) % 100;
+
+	/* 通过UART发送查询指令 */
+	if (HAL_UART_Transmit(huart, txData, sizeof(txData), timeout) != HAL_OK)
+		return -1;  /* 发送失败返回-1 */
+
+	/* 准备接收舵机返回的状态数据 */
+	uint8_t rxData[16] = {0};
+	/* 等待接收舵机返回的数据 */
+	if (HAL_UART_Receive(huart, rxData, sizeof(rxData), timeout) != HAL_OK)
+		return -1;  /* 接收失败返回-1 */
+
+	/* 解析接收到的数据 */
+	float id_numf   = rxData[1];                        /* 舵机ID号 */
+	float cur_angle = rxData[2] * 10.0f + rxData[3] * 0.1f;  /* 当前角度 = 高位*10 + 低位*0.1 */
+	float exp_angle = rxData[4] * 10.0f + rxData[5] * 0.1f;  /* 期望角度 = 高位*10 + 低位*0.1 */
+	float run_time  = rxData[6] * 100.0f + rxData[7];        /* 运行时间 = 高位*100 + 低位 */
+
+	/* 根据para_num参数返回不同的信息 */
+	if      (para_num == 1) return id_numf;    /* 返回舵机ID */
+	else if (para_num == 2) return cur_angle;  /* 返回当前角度 */
+	else if (para_num == 3) return exp_angle;  /* 返回期望角度 */
+	else if (para_num == 4) return run_time;   /* 返回运行时长 */
+	return 1;  /* para_num为其他值时返回1 */
+}
+
+/** 8
+ * @brief 解锁舵机的堵转保护状态
+ * 
+ * 当舵机进入堵转保护状态（如过载保护）后，不会响应转动命令。
+ * 排除导致保护状态的原因（如负载过大）后，可调用此函数或重新上电
+ * 解除保护状态，使舵机重新正常工作。
+ * 
+ * @param huart   指定使用的UART外设的句柄
+ * @param id_num  要解锁的舵机编号
+ * @param timeout UART发送的超时时间（毫秒）
+ * @return HAL_StatusTypeDef 如果成功则返回HAL_OK，否则返回错误状态
+ */
+HAL_StatusTypeDef unlock_stall(UART_HandleTypeDef *huart, int id_num, uint32_t timeout)
+{
+	/* 记录HAL库函数返回状态 */
+	HAL_StatusTypeDef status;
+	
+	/*
+	 * cmd数组构造了一条解锁堵转保护的指令包：
+	 * 0x7B    : 帧头
+	 * 0x0D,0x32 : 指令数据，用于舵机解锁
+	 * 0x30    : 功能码
+	 * 0x7D    : 帧尾
+	 */
+	uint8_t cmd[10] = {0x7B, 0, 0x0D, 0x32, 0, 1, 0, 0x30, 0, 0x7D};
+
+	/* 设置舵机ID */
+	cmd[1] = id_num;
+
+	/* 计算校验和（取各数据之和%100） */
+	cmd[6] = (cmd[1] + cmd[2] + cmd[3] + cmd[4]
+			+ cmd[5] + cmd[7] + cmd[8]) % 100;
+
+	/* 发送解锁指令 */
+	status = HAL_UART_Transmit(huart, cmd, sizeof(cmd), timeout);
+
+	/* 为避免指令间干扰，延时20ms */
+	HAL_Delay(20);
+
+	return status;
+}
