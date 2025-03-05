@@ -19,12 +19,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usart.h"
-#include "usb.h"
+#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "HAL_Servo.h"
+#include "usbd_cdc_if.h"
 
 /* USER CODE END Includes */
 
@@ -90,8 +91,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-  MX_USB_PCD_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+  float state;
 
   /* USER CODE END 2 */
 
@@ -106,19 +108,26 @@ int main(void)
     // HAL_Delay(5000);
 
     DaRan_HAL_set_angle(&huart1, 1, 180, 10, 200);
+    state = DaRan_HAL_get_state(&huart1, 1, 1, 3,3000);
     HAL_Delay(600);
     DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
+    state = DaRan_HAL_get_state(&huart1, 1, 2, 3,3000);
     HAL_Delay(600);
     DaRan_HAL_set_angle(&huart1, 1, 0, 10, 200);
+    state = DaRan_HAL_get_state(&huart1, 1, 2, 3,3000);
     HAL_Delay(600);
     DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
-    HAL_Delay(600);
+    state = DaRan_HAL_get_state(&huart1, 1, 2, 3,3000);
+    // HAL_Delay(600);
 
     // /* 测试程序状态 */
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    // HAL_Delay(1000);
+    HAL_Delay(300);
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    // HAL_Delay(1000);
+    HAL_Delay(300);
+    
+    unsigned char data[14] = {"Hello World!\r\n"};
+    CDC_Transmit_FS(data,sizeof(data));
   }
   /* USER CODE END 3 */
 }

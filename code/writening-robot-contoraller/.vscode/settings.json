@@ -7,6 +7,10 @@
         "usart.h": "c",
         "stm32f1xx_hal_uart.h": "c",
         "stm32f1xx.h": "c",
-        "hal_servo.h": "c"
-    }
+        "hal_servo.h": "c",
+        "usb_device.h": "c",
+        "hal_s05-md.h": "c",
+        "*.tcc": "c"
+    },
+    "cortex-debug.variableUseNaturalFormat": true
 }

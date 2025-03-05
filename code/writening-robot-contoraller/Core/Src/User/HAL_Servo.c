@@ -4,6 +4,48 @@ uint8_t servo_sdata[10]={ 0x7b,0x79,0,0,0,0,0x10,0x10,0x10,0x7d };  //发送数�
 uint8_t servo_sdata_short[4]={0x7E,0,0,0};	//发送数组  4bit,原名：servo_sdata1
 uint8_t servo_rdata[16]={0x7b,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7d};    //舵机返回值存放数组 16bit
 
+// 添加全局变量用于中断接收
+volatile uint8_t u_numm = 0;                    // 接收数据计数器
+volatile uint8_t receive_flag = 0;              // 接收状态标志（0:未接收，1:正在接收，2:接收完成）
+volatile float servo_rpara[5] = {0, 0, 0, 0, 0}; // 存储解析后的数据数组
+volatile float id_number = 0;                   // 舵机ID号
+volatile float cur_angle = 0;                   // 当前角度
+volatile float exp_angle = 0;                   // 期望角度
+volatile float run_time = 0;                    // 运行时间
+volatile uint8_t uart1RxData;                 // 全局变量用于接收数据
+
+// 接收中断回调函数
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  // 读取接收到的一个字节数据
+  // 删除或替换局部变量 rx_data，直接使用全局 uart1RxData
+  
+  // 检测帧头
+  if(uart1RxData == 0x7B)
+  {
+    u_numm = 0;
+    receive_flag = 1;
+  }
+  
+  // 如果正在接收数据
+  if(receive_flag == 1)
+  {
+    servo_rdata[u_numm] = uart1RxData;
+    u_numm++;
+  }
+  
+  // 检测是否接收完成（接收到帧尾且总长度正确）
+  if(receive_flag == 1 && uart1RxData == 0x7D && u_numm == 16)
+  {
+    receive_flag = 2;
+  }
+  
+  // 重新启用接收中断
+  __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
+  // 在解析完一字节后，再次开启下一次接收
+  HAL_UART_Receive_IT(huart, &uart1RxData, 1);
+}
+
 /** 1
  * @fn HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num, float angle, uint16_t step, uint32_t timeout)
  * @brief 使单个舵机转动到指定角度 (HAL库风格)
@@ -392,49 +434,95 @@ HAL_StatusTypeDef DaRan_HAL_set_pid(UART_HandleTypeDef *huart, int id_num, char 
  *                 para_num=2, 返回当前角度
  *                 para_num=3, 返回当前期望角度
  *                 para_num=4, 返回运行时长
- * @param o_m      用来指明多个舵机(o_m=0)还是一个舵机，如果只有一个舵机可以采用广播模式，此时o_m=1
+ * @param o_m      用来指明多个舵机(o_m=0)还是一个舵机，如果只有一个舵机可以采用广播模式，此时 o_m=1
  * @param timeout  UART发送超时时间(毫秒)
  * @return float   返回值会根据para_num的值相应改变
- *                 para_num=0, 返回所有信息组成的列表
- *                 para_num=1, 返回当前舵机编号
- *                 para_num=2, 返回当前角度
- *                 para_num=3, 返回当前期望角度
- *                 para_num=4, 返回运行时长
  * @note 如果多个舵机连接时，查询指令使用了广播模式，会return 0,不执行查询指令
  */
 float DaRan_HAL_get_state(UART_HandleTypeDef *huart, int id_num, int para_num, int o_m, uint32_t timeout)
 {
-	/* 多舵机连接时如果使用广播模式，返回0且不执行查询指令 */
-	if ((id_num == 121 && o_m == 0) || (id_num == 121 && o_m > 1)) return 0;
-
-	/* 构建查询指令数据包 */
-	uint8_t txData[10] = {0x7B, id_num, 0, 0, 0, 0, 0, 0x13, 0, 0x7D};
-	/* 计算校验和：所有数据和取模100 */
-	txData[6] = (txData[1] + txData[2] + txData[3] + txData[4]
-			   + txData[5] + txData[7] + txData[8]) % 100;
-
-	/* 通过UART发送查询指令 */
-	if (HAL_UART_Transmit(huart, txData, sizeof(txData), timeout) != HAL_OK)
-		return -1;  /* 发送失败返回-1 */
-
-	/* 准备接收舵机返回的状态数据 */
-	uint8_t rxData[16] = {0};
-	/* 等待接收舵机返回的数据 */
-	if (HAL_UART_Receive(huart, rxData, sizeof(rxData), timeout) != HAL_OK)
-		return -1;  /* 接收失败返回-1 */
-
-	/* 解析接收到的数据 */
-	float id_numf   = rxData[1];                        /* 舵机ID号 */
-	float cur_angle = rxData[2] * 10.0f + rxData[3] * 0.1f;  /* 当前角度 = 高位*10 + 低位*0.1 */
-	float exp_angle = rxData[4] * 10.0f + rxData[5] * 0.1f;  /* 期望角度 = 高位*10 + 低位*0.1 */
-	float run_time  = rxData[6] * 100.0f + rxData[7];        /* 运行时间 = 高位*100 + 低位 */
-
-	/* 根据para_num参数返回不同的信息 */
-	if      (para_num == 1) return id_numf;    /* 返回舵机ID */
-	else if (para_num == 2) return cur_angle;  /* 返回当前角度 */
-	else if (para_num == 3) return exp_angle;  /* 返回期望角度 */
-	else if (para_num == 4) return run_time;   /* 返回运行时长 */
-	return 1;  /* para_num为其他值时返回1 */
+  /* 多舵机连接时如果使用广播模式，返回0且不执行查询指令 */
+  if ((id_num == 121 && o_m == 0) || (id_num == 121 && o_m > 1)) return 0;
+  
+  /* 准备接收数据 */
+  u_numm = 0;
+  receive_flag = 0;
+  
+  /* 启用UART接收中断 */
+  HAL_UART_Receive_IT(huart, &uart1RxData, 1);
+  
+  /* 构建查询指令数据包 */
+  servo_sdata[0] = 0x7B;  // 帧头
+  servo_sdata[1] = id_num;  // 舵机ID
+  servo_sdata[2] = 0;
+  servo_sdata[3] = 0;
+  servo_sdata[4] = 0;
+  servo_sdata[5] = 0;
+  servo_sdata[7] = 0x13;  // 功能码
+  servo_sdata[8] = 0;
+  servo_sdata[9] = 0x7D;  // 帧尾
+  
+  /* 计算校验和 */
+  servo_sdata[6] = (servo_sdata[1] + servo_sdata[2] + servo_sdata[3] + 
+                   servo_sdata[4] + servo_sdata[5] + servo_sdata[7] + 
+                   servo_sdata[8]) % 100;
+  
+  /* 发送查询指令 */
+  if(HAL_UART_Transmit(huart, servo_sdata, sizeof(servo_sdata), timeout) != HAL_OK)
+  {
+    return -1;
+  }
+  
+  /* 等待接收完成或超时 */
+  uint32_t startTick = HAL_GetTick();
+  while(receive_flag != 2)
+  {
+    /* 检查是否超时 */
+    if(HAL_GetTick() - startTick > timeout)
+    {
+      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
+      return -1;
+    }
+    HAL_Delay(1); // 短暂延时，避免过度占用CPU
+  }
+  
+  /* 禁用UART接收中断，防止干扰 */
+  __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
+  
+  /* 数据接收完成，解析数据 */
+  if(receive_flag == 2)
+  {
+    receive_flag = 0;
+    id_number = servo_rdata[1];
+    cur_angle = (float)servo_rdata[2] * 10.0f + (float)servo_rdata[3] * 0.1f;
+    exp_angle = (float)servo_rdata[4] * 10.0f + (float)servo_rdata[5] * 0.1f;
+    run_time = servo_rdata[6] * 100.0f + servo_rdata[7];
+    
+    /* 存储解析后的数据到数组，方便后续调用 */
+    servo_rpara[0] = id_number;  // 舵机ID
+    servo_rpara[1] = cur_angle;  // 当前角度
+    servo_rpara[2] = exp_angle;  // 期望角度
+    servo_rpara[3] = run_time;   // 运行时间
+    
+    /* 根据para_num返回相应参数 */
+    if(para_num == 1)
+      return id_number;
+    else if(para_num == 2)
+      return cur_angle;
+    else if(para_num == 3)
+      return exp_angle;
+    else if(para_num == 4)
+      return run_time;
+    else if(para_num == 0)
+    {
+      servo_rpara[4] = servo_rdata[8]; // 存储工作模式
+    }
+    return 1;  // 返回成功标志
+  }
+  else
+  {
+    return -1; // 接收失败
+  }
 }
 
 /** 8
