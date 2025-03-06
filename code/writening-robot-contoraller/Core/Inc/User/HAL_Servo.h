@@ -156,5 +156,16 @@ float DaRan_HAL_get_state(UART_HandleTypeDef *huart, int id_num, int para_num, i
  */
 HAL_StatusTypeDef unlock_stall(UART_HandleTypeDef *huart, int id_num, uint32_t timeout);
 
+/** 9
+ * @fn HAL_StatusTypeDef DaRan_HAL_set_speed(UART_HandleTypeDef *huart, int id_num, int speed, uint32_t timeout)
+ * @brief 轮子模式下设置舵机的转动速度
+ * 
+ * @param huart   指定使用的UART外设的句柄
+ * @param id_num  要设置的舵机编号
+ * @param speed   舵机的转动速度
+ * @param timeout UART发送的超时时间（毫秒）
+ * @return HAL_StatusTypeDef 如果成功则返回HAL_OK，否则返回错误状态
+ */
+HAL_StatusTypeDef DaRan_HAL_set_speed(UART_HandleTypeDef *huart, int id_num, int speed, uint32_t timeout);
 
 #endif

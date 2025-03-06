@@ -94,7 +94,8 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   float state;
-
+  char buffer[20];
+  DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,30 +105,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    DaRan_HAL_set_speed(&huart1, 1, 125, 1000);
+    state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
+    CDC_Transmit_FS('state', strlen(5));
 
-    // HAL_Delay(5000);
+    // CDC_Transmit_FS((uint8_t *)"Hallow World!\n", strlen("Hallow World!\n"));
+    // HAL_Delay(100);
 
-    DaRan_HAL_set_angle(&huart1, 1, 180, 10, 200);
-    state = DaRan_HAL_get_state(&huart1, 1, 1, 3,3000);
-    HAL_Delay(600);
-    DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
-    state = DaRan_HAL_get_state(&huart1, 1, 2, 3,3000);
-    HAL_Delay(600);
-    DaRan_HAL_set_angle(&huart1, 1, 0, 10, 200);
-    state = DaRan_HAL_get_state(&huart1, 1, 2, 3,3000);
-    HAL_Delay(600);
-    DaRan_HAL_set_angle(&huart1, 1, 90, 10, 200);
-    state = DaRan_HAL_get_state(&huart1, 1, 2, 3,3000);
-    // HAL_Delay(600);
-
-    // /* 测试程序状态 */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    HAL_Delay(300);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    HAL_Delay(300);
-    
-    unsigned char data[14] = {"Hello World!\r\n"};
-    CDC_Transmit_FS(data,sizeof(data));
+    HAL_Delay(500);
+    DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
+    state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
+    HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
