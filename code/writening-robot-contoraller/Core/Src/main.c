@@ -93,9 +93,9 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  float state;
-  char buffer[20];
-  DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
+  // float state;
+  // char buffer[20];
+  // DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,16 +105,16 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    DaRan_HAL_set_speed(&huart1, 1, 125, 1000);
-    state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
-    CDC_Transmit_FS('state', strlen(5));
-
-    // CDC_Transmit_FS((uint8_t *)"Hallow World!\n", strlen("Hallow World!\n"));
+    // DaRan_HAL_set_speed(&huart1, 1, 125, 1000);
+    // state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
+    // CDC_Transmit_FS('state', strlen(5));
+    HAL_Delay(500);
+    CDC_Transmit_FS((uint8_t *)"Hallow World!\n", strlen("Hallow World!\n"));
     // HAL_Delay(100);
 
     HAL_Delay(500);
-    DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
-    state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
+    // DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
+    // state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
     HAL_Delay(500);
   }
   /* USER CODE END 3 */
