@@ -32,6 +32,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "./User/HAL_Servo.h"
+#include "./User/DecalToAngle.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

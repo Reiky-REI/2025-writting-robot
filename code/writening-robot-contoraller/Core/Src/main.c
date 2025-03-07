@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "HAL_Servo.h"
 #include "usbd_cdc_if.h"
+#include "DecalToAngle.h"
 
 /* USER CODE END Includes */
 
@@ -93,9 +94,21 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  // float state;
-  // char buffer[20];
-  // DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
+
+  HAL_Servo_Init();
+
+  float TargetLocation[2] = {50, 50};
+  float CurrentAngle[2];
+
+  CurrentAngle[0] = DaRan_HAL_get_state(&huart1,1,2,0,200);
+  CurrentAngle[1] = 
+
+  float* angles = cla_angle(TargetLocation[0], TargetLocation[1]);
+
+  // DaRan_HAL_set_angles(&huart1,)
+  DaRan_HAL_set_angle(&huart1,1,angles[0],1,200);
+  DaRan_HAL_set_angle(&huart1,2,angles[1],1,200);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,17 +118,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // DaRan_HAL_set_speed(&huart1, 1, 125, 1000);
-    // state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
-    // CDC_Transmit_FS('state', strlen(5));
-    HAL_Delay(500);
-    CDC_Transmit_FS((uint8_t *)"Hallow World!\n", strlen("Hallow World!\n"));
-    // HAL_Delay(100);
-
-    HAL_Delay(500);
-    // DaRan_HAL_set_speed(&huart1, 1, 0, 1000);
-    // state = DaRan_HAL_get_state(&huart1, 1, 2, 1, 1000);
-    HAL_Delay(500);
+  
   }
   /* USER CODE END 3 */
 }
@@ -167,7 +170,12 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+float* cla_angle(float x, float y)
+{
+  static float result;
+  result = (x + y) / 2.0f; // Example calculation; modify as needed.
+  return &result;
+}
 /* USER CODE END 4 */
 
 /**
