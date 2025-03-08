@@ -1,5 +1,4 @@
 #include "HAL_Servo.h"
-#include "usart.h"
 uint8_t servo_sdata[10] = {0x7b, 0x79, 0, 0, 0, 0, 0x10, 0x10, 0x10, 0x7d};       // 发送数组  10bit
 uint8_t servo_sdata_short[4] = {0x7E, 0, 0, 0};                                   // 发送数组  4bit,原名：servo_sdata1
 uint8_t servo_rdata[16] = {0x7b, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x7d}; // 舵机返回值存放数组 16bit

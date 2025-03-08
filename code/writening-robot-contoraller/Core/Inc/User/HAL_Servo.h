@@ -1,10 +1,11 @@
-#ifndef __SERVO_H
-#define __SERVO_H
+#ifndef __HAL_SERVO_H
+#define __HAL_SERVO_H
 
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_uart.h"
 #include "stdio.h"
-#include <stdint.h>
+#include "stdint.h"
+#include "usart.h"
 
 /** 1
  * @fn HAL_StatusTypeDef DaRan_HAL_set_angle(UART_HandleTypeDef *huart, uint8_t id_num, float angle, uint16_t step, uint32_t timeout)
