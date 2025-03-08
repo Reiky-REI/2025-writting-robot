@@ -95,13 +95,12 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_Servo_Init();
 
-  float TargetLocation[2] = {50, 50};
+  float TargetLocation[2] = {0, 5};
   float CurrentAngle[2];
 
   CurrentAngle[0] = DaRan_HAL_get_state(&huart1,1,2,0,200);
-  CurrentAngle[1] = 
+  CurrentAngle[1] = DaRan_HAL_get_state(&huart1,2,2,0,200);
 
   float* angles = cla_angle(TargetLocation[0], TargetLocation[1]);
 
@@ -170,12 +169,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-float* cla_angle(float x, float y)
-{
-  static float result;
-  result = (x + y) / 2.0f; // Example calculation; modify as needed.
-  return &result;
-}
+
 /* USER CODE END 4 */
 
 /**

@@ -1,0 +1,245 @@
+<h2 id="电机参数">电机参数</h2>
+<h3 id="状态回读">状态回读</h3>
+<ul>
+<li>回读ID</li>
+<li>回读角度</li>
+<li>回读PID参数</li>
+<li>最大最小占空比</li>
+<li>回读目标角度容错偏差</li>
+<li>回读零点位置偏差</li>
+<li>回读初始上电所处工作模式</li>
+<li>回读自我保护“反应时间”</li>
+<li>回读舵机内部温度</li>
+<li>回读舵机当前电压</li>
+<li>回读舵机当前电流</li>
+</ul>
+<h3 id="控制变量">控制变量</h3>
+<ul>
+<li>角速度 同启同停</li>
+<li>力矩控制</li>
+</ul>
+<h3 id="工作模式">工作模式</h3>
+<ul>
+<li>有限角度控制模式</li>
+<li>多圈大角度控制模式</li>
+<li>连续转动模式</li>
+<li>阻尼模式</li>
+<li>待机模式</li>
+</ul>
+<h2 id="运动控制函数">运动控制函数</h2>
+<h3
+id="有限角度控制模式下的转动位置及速度函数">有限角度控制模式下的转动位置及速度函数</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode c++"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> set_angle<span class="op">(</span><span class="dt">int</span> id_num<span class="op">,</span> <span class="dt">float</span>  angle<span class="op">,</span> <span class="dt">int</span> step <span class="op">)</span></span></code></pre></div>
+<p>参数及解释： &gt; id_num - 舵机编号范围0~255（除去121,126,127
+共253个），默认为0；121（0x79）号为舵机的共同编号（以下统称广播编号），即所有舵机都会响应到控制
+指令并执行。 &gt; angle - 设置舵机转动角度，可选角度范围为0~270°。</p>
+<blockquote>
+<p>step -
+设置舵机运动步数，该参数可调节转动速度。舵机要达到指定角度分步的次数，以10ms为周期每周期最多运动4度，步数设置为“1”时则以最快速度转动，步数越大速度越低。</p>
+</blockquote>
+<h3 id="设置转动力矩函数">设置转动力矩函数</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode c++"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> set_torque <span class="op">(</span><span class="dt">int</span> id_num<span class="op">,</span> <span class="dt">double</span> torque<span class="op">);</span></span></code></pre></div>
+<p>参数及解释： &gt; id_num -
+舵机编号，即要设置第几号舵机的连续转动模式下的转动扭矩，这里可以用广播编号</p>
+<blockquote>
+<p>torque - 参数范围（-3~3），参数为正，舵机则正转，反之反转。
+（参数的绝对值表示力矩的相对大小）</p>
+</blockquote>
+<h3 id="回读状态get_state">回读状态（get_state）</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode c++"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> get_state<span class="op">(</span><span class="dt">int</span> id_num<span class="op">,</span> <span class="dt">int</span> para_num，int o_m<span class="op">);</span></span></code></pre></div>
+<p>返回值：</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode c++"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> servo_rpara<span class="op">[</span>ID<span class="op">,</span>AngleNow<span class="op">,</span>AngleExp<span class="op">,</span>Time<span class="op">,</span>StatesNow<span class="op">,];</span></span></code></pre></div>
+<p>参数解释： &gt;</p>
+<h1 id="运动学反解">运动学反解</h1>
+<p>对于<span class="math inline"><em>θ</em><sub>1</sub></span></p>
+<p><span class="math display">$$
+\begin{equation}
+\begin{aligned}
+\theta_1 &amp;= 2 \cdot arctan(\frac{d_1 \pm \sqrt{d_1^2 + e_1^2
+-f_1^2}}{e_1 - f_1}) \\
+d_1 &amp;= -2 \cdot l_1 \cdot y_c \\
+e_1 &amp;= -2 \cdot l_1 \cdot x_c \\
+f_1 &amp;= x_c^2 + y_c^2 + l_1^2 - l_2^2 \\
+\end{aligned}
+\end{equation}
+$$</span></p>
+<p>对于<span class="math inline"><em>θ</em><sub>4</sub></span></p>
+<p><span class="math display">$$
+\begin{equation}
+\begin{aligned}
+\theta_4 &amp;= 2 \cdot arctan(\frac{d_2 \pm \sqrt{d_2^2 + e_2^2
+-f_2^2}}{e_2 - f_2}) \\
+d_2 &amp;= -2 \cdot l_3 \cdot y_c \\
+e_2 &amp;= 2 \cdot l_4 \cdot l_5 - 2 \cdot x_c \\
+f_2 &amp;= x_c^2 + y_c^2 + l_4^2 -l_3^2 +l_5^2 - 2 \cdot x_c \cdot l_5
+\\
+\end{aligned}
+\end{equation}
+$$</span></p>
+<p>对于笔尖坐标系<span
+class="math inline">(<em>x</em><sub><em>p</em><em>e</em><em>n</em></sub>, <em>y</em><sub><em>p</em><em>e</em><em>n</em></sub>)</span>:
+<span class="math display">$$
+\begin{equation}
+\begin{aligned}
+x_{pen} &amp;= x_c + sin(\theta_0) \cdot l_8 \\
+y_{pen} &amp;= y_c + cos(\theta_0) \cdot l_8 \\
+\\
+l_8 &amp;= l_M - l_7 \cdot cos(\theta_5) \\
+l_7 &amp;= cos(\theta_5) \cdot l_6 \\
+\theta_5 &amp;= 180^\circ - \theta_2 -\theta_0 \\
+\theta_0 &amp;= arctan(\frac{y_c}{x_c - \frac{l_5}{2}}) \\
+\theta_2 &amp;= 2 \cdot arctan(\frac{B_0 + \sqrt{A_0^2 + B_0^2 -
+C_0^2}}{A_0 - C_0}) \\
+\\
+A_0 &amp;= 2 \cdot l_2(x_D - x_B) \\
+B_0 &amp;= 2 \cdot l_2(y_D - y_B) \\
+C_0 &amp;= l_2^2 + l_{BD}^2 - l_3^2 \\
+l_{BD} &amp;= \sqrt{(x_D - x_B)^2 + (y_D - y_B)^2} \\
+\\
+x_B &amp;= l_1 \cdot cos(\theta_1) \\
+y_B &amp;= l_1 \cdot sin(\theta_1) \\
+x_D &amp;= x_{pen} - l_4 \cdot cos(\theta_4) \\
+y_D &amp;= y_{pen} - l_4 \cdot sin(\theta_4) \\
+\end{aligned}
+\end{equation}
+$$</span></p>
+<p>并且通过测量得： <span class="math display">$$
+\begin{equation}
+\begin{aligned}
+l_1 &amp;= 90 \\
+l_2 &amp;= 130 \\
+l_3 &amp;= 130 \\
+l_4 &amp;= 90 \\
+l_5 &amp;= 105 \\
+l_6 &amp;= 35 \\
+l_M &amp;= 95 \\-
+\end{aligned}
+\end{equation}
+$$</span></p>
+<p>则总公式，从 <span
+class="math inline">(<em>x</em><sub><em>p</em><em>e</em><em>n</em></sub>, <em>y</em><sub><em>p</em><em>e</em><em>n</em></sub>)</span>
+映射到驱动舵机 <span
+class="math inline">(<em>θ</em><sub>1</sub>, <em>θ</em><sub>4</sub>)</span>
+的公式为： <span class="math display">$$
+\begin{equation}
+\begin{aligned}
+\textbf{（1）}\quad &amp;x_{pen} = x_c + \sin\theta_0\,(l_M -
+l_7\cos\theta_5),\\[1mm]
+&amp;y_{pen} = y_c + \cos\theta_0\,(l_M - l_7\cos\theta_5),\\[1mm]
+&amp;\theta_0 =
+\arctan\Bigl(\frac{y_c}{\,x_c-\frac{l_5}{2}}\Bigr),\\[1mm]
+&amp;\theta_5 = 180^\circ - \theta_2 - \theta_0,\\[1mm]
+&amp;l_7 = l_6\cos\theta_5,\\[1mm]
+\\[1mm]
+\textbf{（2）}\quad &amp;x_B = l_1\cos\theta_1,\quad y_B =
+l_1\sin\theta_1,\\[1mm]
+&amp;x_D = x_{pen} - l_4\cos\theta_4,\quad y_D = y_{pen} -
+l_4\sin\theta_4,\\[1mm]
+&amp;l_{BD} = \sqrt{(x_D - x_B)^2 + (y_D-y_B)^2},\\[1mm]
+&amp; A_0 = 2\,l_2(x_D - x_B),\\[1mm]
+&amp; B_0 = 2\,l_2(y_D - y_B),\\[1mm]
+&amp; C_0 = l_2^2 + l_{BD}^2 - l_3^2,\\[1mm]
+&amp;\theta_2 = 2\,\arctan\Bigl(\frac{B_0 +
+\sqrt{A_0^2+B_0^2-C_0^2}}{\,A_0-C_0}\Bigr),\\[1mm]
+\\[1mm]
+\textbf{（3）}\quad &amp;\theta_1 = 2\arctan\Biggl(\frac{d_1 \;\pm\;
+\sqrt{\,d_1^2+e_1^2-f_1^2\,}}{\,e_1 - f_1}\Biggr),\\[1mm]
+&amp;\quad d_1 = -2\,l_1\,y_c,\\[1mm]
+&amp;\quad e_1 = -2\,l_1\,x_c,\\[1mm]
+&amp;\quad f_1 = x_c^2 + y_c^2 + l_1^2 - l_2^2,\\[1mm]
+\\[1mm]
+\textbf{（4）}\quad &amp;\theta_4 = 2\arctan\Biggl(\frac{d_2 \;\pm\;
+\sqrt{\,d_2^2+e_2^2-f_2^2\,}}{\,e_2 - f_2}\Biggr),\\[1mm]
+&amp;\quad d_2 = -2\,l_3\,y_c,\\[1mm]
+&amp;\quad e_2 = 2\,l_4\,l_5 - 2\,x_c,\\[1mm]
+&amp;\quad f_2 = x_c^2 + y_c^2 + l_4^2 - l_3^2 + l_5^2 - 2\,l_5\,x_c.
+\end{aligned}
+\end{equation}
+$$</span></p>
+<p>则根据以上公式可以编写如下代码：</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode c++"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@fn</span><span class="co"> </span><span class="do">float</span><span class="co">* </span><span class="do">cla_angle(float</span><span class="co"> </span><span class="do">x_pen,</span><span class="co"> </span><span class="do">float</span><span class="co"> </span><span class="do">y_pen)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> 通过笔尖坐标系的坐标计算舵机角度</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"> * 该函数根据逆运动学公式组计算从笔尖坐标 </span><span class="an">\((x_{pen},y_{pen})\)</span><span class="co"> 到驱动舵机角度 </span><span class="an">\((\theta_1,\theta_4)\)</span><span class="co"> 的映射值。</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"> * 公式中涉及的中间变量包括：</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"> *   - 对于舵机1（</span><span class="an">\(\theta_1\)）：</span><span class="co">  </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"> *        d₁ = -2·l₁·y_c  </span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"> *        e₁ = -2·l₁·x_c  </span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *        f₁ = x_c² + y_c² + l₁² - l₂²  </span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"> *        </span><span class="an">\(\theta_1</span><span class="co"> = 2 </span><span class="an">\arctan\Bigl(\frac{d₁</span><span class="co"> </span><span class="an">\pm</span><span class="co"> </span><span class="an">\sqrt{d₁^2+e₁^2-f₁^2}}{e₁-f₁}\Bigr)\)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *   - 对于舵机4（</span><span class="an">\(\theta_4\)）：</span><span class="co">  </span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"> *        d₂ = -2·l₃·y_c  </span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"> *        e₂ = 2·l₄·l₅ - 2·x_c  </span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"> *        f₂ = x_c² + y_c² + l₄² - l₃² + l₅² - 2·l₅·x_c  </span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *        </span><span class="an">\(\theta_4</span><span class="co"> = 2 arctan</span><span class="an">\Bigl(\frac{d₂</span><span class="co"> </span><span class="an">\pm</span><span class="co"> </span><span class="an">\sqrt{d₂^2+e₂^2-f₂^2}}{e₂-f₂}\Bigr)\)</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"> * 固定参数根据实际测量得到：</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"> *   l₁ = 90,  l₂ = 130,  l₃ = 130,  l₄ = 90,  l₅ = 105,  l₆ = 35,  l_M = 150.</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">x_pen</span><span class="co"> 笔尖坐标系的 x 坐标</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">y_pen</span><span class="co"> 笔尖坐标系的 y 坐标</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> float* 返回一个长度为2的数组，其中 angle[0] 为舵机1角度 θ₁，angle[1] 为舵机4角度 θ₄</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span><span class="op">*</span> cla_angle<span class="op">(</span><span class="dt">float</span> x_pen<span class="op">,</span> <span class="dt">float</span> y_pen<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 静态数组保证在函数返回后数据依然有效</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">float</span> angle<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 固定参数（单位：毫米或其它统一单位）</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> l1  <span class="op">=</span> <span class="fl">90.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> l2  <span class="op">=</span> <span class="fl">130.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> l3  <span class="op">=</span> <span class="fl">130.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> l4  <span class="op">=</span> <span class="fl">90.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> l5  <span class="op">=</span> <span class="fl">105.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> l6  <span class="op">=</span> <span class="fl">35.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">float</span> lM  <span class="op">=</span> <span class="fl">95.0</span><span class="bu">f</span><span class="op">;</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="co">// *************************************************************************</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 【注意】：</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 公式中涉及中间变量 x_c, y_c 为工作坐标系坐标，通常由笔尖坐标转换得到。</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 此处为简化计算，假设工作坐标系与笔尖坐标系重合，即：</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> x_c <span class="op">=</span> x_pen<span class="op">;</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> y_c <span class="op">=</span> y_pen<span class="op">;</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">// *************************************************************************</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="co">/************* 计算舵机1角度 θ₁ ******************/</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="co">// d₁ = -2 * l₁ * y_c</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> d1 <span class="op">=</span> <span class="op">-</span><span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> l1 <span class="op">*</span> y_c<span class="op">;</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">// e₁ = -2 * l₁ * x_c</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> e1 <span class="op">=</span> <span class="op">-</span><span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> l1 <span class="op">*</span> x_c<span class="op">;</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">// f₁ = x_c² + y_c² + l₁² - l₂²</span></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> f1 <span class="op">=</span> x_c <span class="op">*</span> x_c <span class="op">+</span> y_c <span class="op">*</span> y_c <span class="op">+</span> l1 <span class="op">*</span> l1 <span class="op">-</span> l2 <span class="op">*</span> l2<span class="op">;</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 计算判别式，保证根号内非负（若出现负值，则置为0）</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> discriminant1 <span class="op">=</span> d1 <span class="op">*</span> d1 <span class="op">+</span> e1 <span class="op">*</span> e1 <span class="op">-</span> f1 <span class="op">*</span> f1<span class="op">;</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    discriminant1 <span class="op">=</span> discriminant1 <span class="op">&lt;</span> <span class="dv">0</span> <span class="op">?</span> <span class="dv">0</span> <span class="op">:</span> discriminant1<span class="op">;</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 根据公式：θ₁ = 2·arctan((d₁ ± √(d₁²+e₁²−f₁²))/(e₁ − f₁))</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 此处选择正号分支，实际应用中可根据需要选择正负分支。</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> theta_1 <span class="op">=</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> atan<span class="op">((</span>d1 <span class="op">+</span> sqrt<span class="op">(</span>discriminant1<span class="op">))</span> <span class="op">/</span> <span class="op">(</span>e1 <span class="op">-</span> f1<span class="op">));</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">/************* 计算舵机4角度 θ₄ ******************/</span></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>    <span class="co">// d₂ = -2 * l₃ * y_c</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> d2 <span class="op">=</span> <span class="op">-</span><span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> l3 <span class="op">*</span> y_c<span class="op">;</span></span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    <span class="co">// e₂ = 2 * l₄ * l₅ - 2 * x_c</span></span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> e2 <span class="op">=</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> l4 <span class="op">*</span> l5 <span class="op">-</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> x_c<span class="op">;</span></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">// f₂ = x_c² + y_c² + l₄² - l₃² + l₅² - 2 * l₅ * x_c</span></span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> f2 <span class="op">=</span> x_c <span class="op">*</span> x_c <span class="op">+</span> y_c <span class="op">*</span> y_c <span class="op">+</span> l4 <span class="op">*</span> l4 <span class="op">-</span> l3 <span class="op">*</span> l3 <span class="op">+</span> l5 <span class="op">*</span> l5 <span class="op">-</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> l5 <span class="op">*</span> x_c<span class="op">;</span></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 计算判别式，确保根号下非负</span></span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> discriminant2 <span class="op">=</span> d2 <span class="op">*</span> d2 <span class="op">+</span> e2 <span class="op">*</span> e2 <span class="op">-</span> f2 <span class="op">*</span> f2<span class="op">;</span></span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>    discriminant2 <span class="op">=</span> discriminant2 <span class="op">&lt;</span> <span class="dv">0</span> <span class="op">?</span> <span class="dv">0</span> <span class="op">:</span> discriminant2<span class="op">;</span></span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 根据公式：θ₄ = 2·arctan((d₂ ± √(d₂²+e₂²−f₂²))/(e₂ − f₂))</span></span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 同样，这里选择正号分支。</span></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>    <span class="dt">float</span> theta_4 <span class="op">=</span> <span class="fl">2.0</span><span class="bu">f</span> <span class="op">*</span> atan<span class="op">((</span>d2 <span class="op">+</span> sqrt<span class="op">(</span>discriminant2<span class="op">))</span> <span class="op">/</span> <span class="op">(</span>e2 <span class="op">-</span> f2<span class="op">));</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>    <span class="co">/************* 返回计算结果 ******************/</span></span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a>    angle<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> theta_1<span class="op">;</span></span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>    angle<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">=</span> theta_4<span class="op">;</span></span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> angle<span class="op">;</span></span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>以上代码实现了函数 <code>cla_angle</code>，通过输入笔尖坐标 <span
+class="math inline">(<em>x</em><sub><em>p</em><em>e</em><em>n</em></sub>, <em>y</em><sub><em>p</em><em>e</em><em>n</em></sub>)</span>
+计算出对应的舵机角度。注释中详细说明了各个中间变量的物理意义和计算公式，便于后续调试和维护。如果需要完善笔尖坐标到工作坐标的转换或更精确地选择双值解，请在此基础上进行扩展。</p>

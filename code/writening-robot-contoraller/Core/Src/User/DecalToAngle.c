@@ -65,7 +65,7 @@ float* cla_angle(float x_pen, float y_pen) {
     float theta_4 = 2.0f * atan((d2 + sqrt(discriminant2)) / (e2 - f2));
 
     /************* 返回计算结果 ******************/
-    angle[0] = theta_1;
-    angle[1] = theta_4;
+    angle[0] = theta_1 * (180.0f / 3.14159265358979323846f);
+    angle[1] = theta_4 * (180.0f / 3.14159265358979323846f);
     return angle;
 }
