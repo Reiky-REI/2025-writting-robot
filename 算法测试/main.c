@@ -9,114 +9,77 @@
 /**
  * @fn float* cla_angle(float x_pen, float y_pen)
  * @brief 通过笔尖坐标系的坐标计算舵机角度
+ * 
+ * 该函数根据逆运动学公式组计算从笔尖坐标 \((x_{pen},y_{pen})\) 到驱动舵机角度 \((\theta_1,\theta_4)\) 的映射值。
+ * 公式中涉及的中间变量包括：
+ *   - 对于舵机1（\(\theta_1\)）：  
+ *        d₁ = -2·l₁·y_c  
+ *        e₁ = -2·l₁·x_c  
+ *        f₁ = x_c² + y_c² + l₁² - l₂²  
+ *        \(\theta_1 = 2 \arctan\Bigl(\frac{d₁ \pm \sqrt{d₁^2+e₁^2-f₁^2}}{e₁-f₁}\Bigr)\)
+ *   - 对于舵机4（\(\theta_4\)）：  
+ *        d₂ = -2·l₃·y_c  
+ *        e₂ = 2·l₄·l₅ - 2·x_c  
+ *        f₂ = x_c² + y_c² + l₄² - l₃² + l₅² - 2·l₅·x_c  
+ *        \(\theta_4 = 2 arctan\Bigl(\frac{d₂ \pm \sqrt{d₂^2+e₂^2-f₂^2}}{e₂-f₂}\Bigr)\)
+ *
+ * 固定参数根据实际测量得到：
+ *   l₁ = 90,  l₂ = 130,  l₃ = 130,  l₄ = 90,  l₅ = 105,  l₆ = 35,  l_M = 150.
  *
  * @param x_pen 笔尖坐标系的 x 坐标
  * @param y_pen 笔尖坐标系的 y 坐标
  * @return float* 返回一个长度为2的数组，其中 angle[0] 为舵机1角度 θ₁，angle[1] 为舵机4角度 θ₄
  */
 float* cla_angle(float x_pen, float y_pen) {
-    // 机构参数（单位均为 mm）
-    const double l1 = 90.0;
-    const double l2 = 130.0;
-    const double l3 = 130.0;
-    const double l4 = 90.0;
-    const double l5 = 105.0;
-    const double l6 = 35.0;
-    const double lM = 95.0;
+    // 静态数组保证在函数返回后数据依然有效
+    static float angle[2];
 
-    // 初始化中间点 C 的坐标，初值取笔尖坐标（粗略估计）
-    double x_c = x_pen;
-    double y_c = y_pen;
-    
-    // 初始化角度变量
-    double theta0 = 0.0, theta1 = 0.0, theta2 = 0.0, theta4 = 0.0, theta5 = 0.0;
+    // 固定参数（单位：毫米或其它统一单位）
+    const float l1  = 90.0f;
+    const float l2  = 130.0f;
+    const float l3  = 130.0f;
+    const float l4  = 90.0f;
+    const float l5  = 105.0f;
+    const float l6  = 35.0f;
+    const float lM  = 95.0f;
 
-    // 迭代参数
-    const int max_iter = 100;
-    const double tol = 1e-6;
+    // *************************************************************************
+    // 【注意】：
+    // 公式中涉及中间变量 x_c, y_c 为工作坐标系坐标，通常由笔尖坐标转换得到。
+    // 此处为简化计算，假设工作坐标系与笔尖坐标系重合，即：
+    float x_c = x_pen;
+    float y_c = y_pen;
+    // *************************************************************************
 
-    printf("迭代求解过程：\n");
-    for (int i = 0; i < max_iter; i++) {
-        // ① 计算 theta0，采用 atan2 保证正确性
-        theta0 = atan2(y_c, x_c - l5/2.0);
-        
-        // ② 利用 θ₁ 反解公式计算 θ₁
-        double d1 = -2.0 * l1 * y_c;
-        double e1 = -2.0 * l1 * x_c;
-        double f1 = x_c*x_c + y_c*y_c + l1*l1 - l2*l2;
-        double disc1 = d1*d1 + e1*e1 - f1*f1;
-        if(disc1 < 0) disc1 = 0;
-        theta1 = 2.0 * atan((d1 + sqrt(disc1)) / (e1 - f1));
+    // 计算 φ₀ = arctan( y_pen / (x_pen - l5/2) )
+    float phi0 = atan( y_pen / ( x_pen - l5 / 2.0f ) );
 
-        // 计算点 B 坐标
-        double x_B = l1 * cos(theta1);
-        double y_B = l1 * sin(theta1);
+    /************* 计算舵机1角度 φ₁ ******************/
+    float d1 = 2.0f * l2 * x_pen - 2.0f * l2 * lM * cos(phi0);
+    float e1 = 2.0f * l2 * y_pen - 2.0f * l2 * lM * sin(phi0);
+    float f1 = x_pen * x_pen + y_pen * y_pen + l2 * l2 + lM * lM - l1 * l1
+               - 2.0f * lM * x_pen * cos(phi0) + 2.0f * lM * y_pen * sin(phi0);
+    float discriminant1 = d1 * d1 + e1 * e1 - f1 * f1;
+    discriminant1 = discriminant1 < 0 ? 0 : discriminant1;
+    float phi1 = 2.0f * atan((d1 + sqrt(discriminant1)) / (e1 - f1));
+    // 转换 φ₁ 从弧度到角度
+    phi1 = phi1 * 180.0f / 3.14159265358979323846f;
 
-        // ③ 利用 θ₄ 反解公式计算 θ₄
-        double d2 = -2.0 * l3 * y_c;
-        double e2 = 2.0 * l4 * l5 - 2.0 * x_c;
-        double f2 = x_c*x_c + y_c*y_c + l4*l4 - l3*l3 + l5*l5 - 2.0 * l5 * x_c;
-        double disc2 = d2*d2 + e2*e2 - f2*f2;
-        if(disc2 < 0) disc2 = 0;
-        theta4 = 2.0 * atan((d2 + sqrt(disc2)) / (e2 - f2));
+    /************* 计算舵机4角度 φ₄ ******************/
+    float d2 = 2.0f * l4 * y_pen - 2.0f * l4 * lM * sin(phi0);
+    float e2 = 2.0f * l4 * x_pen - 2.0f * l4 * lM * cos(phi0) - 2.0f * l4 * l5;
+    float f2 = x_pen * x_pen + y_pen * y_pen + l4 * l4 + lM * lM + l5 * l5 - l3 * l3
+               - 2.0f * lM * x_pen * cos(phi0) - 2.0f * l5 * x_pen + 2.0f * lM * l5 * cos(phi0)
+               - 2.0f * lM * x_pen * sin(phi0);
+    float discriminant2 = d2 * d2 + e2 * e2 - f2 * f2;
+    discriminant2 = discriminant2 < 0 ? 0 : discriminant2;
+    float phi4 = 2.0f * atan((d2 + sqrt(discriminant2)) / (e2 - f2));
+    // 转换 φ₄ 从弧度到角度
+    phi4 = phi4 * 180.0f / 3.14159265358979323846f;
 
-        // 计算点 D 坐标
-        double x_D = x_pen - l4 * cos(theta4);
-        double y_D = y_pen - l4 * sin(theta4);
-
-        // ④ 利用点 B、D 计算 θ₂
-        double A0 = 2.0 * l2 * (x_D - x_B);
-        double B0 = 2.0 * l2 * (y_D - y_B);
-        double l_BD = sqrt((x_D - x_B)*(x_D - x_B) + (y_D - y_B)*(y_D - y_B));
-        double C0 = l2*l2 + l_BD*l_BD - l3*l3;
-        double disc0 = A0*A0 + B0*B0 - C0*C0;
-        if(disc0 < 0) disc0 = 0;
-        theta2 = 2.0 * atan((B0 + sqrt(disc0)) / (A0 - C0));
-
-        // ⑤ 计算 theta5，注意 180° 换为 π
-        theta5 = M_PI - theta2 - theta0;
-
-        // ⑥ 根据 theta5 计算 l7 和 l8
-        double l7 = l6 * cos(theta5);
-        double l8 = lM - l7 * cos(theta5);
-
-        // ⑦ 更新中间点 C 坐标，根据笔尖与 C 的关系
-        double x_c_new = x_pen - sin(theta0) * l8;
-        double y_c_new = y_pen - cos(theta0) * l8;
-
-        // 输出当前迭代的中间变量和角度值
-        printf("迭代 %d:\n", i+1);
-        printf("  theta0 = %f rad\n", theta0);
-        printf("  theta1 = %f rad\n", theta1);
-        printf("  theta2 = %f rad\n", theta2);
-        printf("  theta4 = %f rad\n", theta4);
-        printf("  theta5 = %f rad\n", theta5);
-        printf("  x_c = %f, y_c = %f\n", x_c_new, y_c_new);
-
-        // 检查收敛性
-        if (fabs(x_c_new - x_c) < tol && fabs(y_c_new - y_c) < tol) {
-            x_c = x_c_new;
-            y_c = y_c_new;
-            break;
-        }
-        x_c = x_c_new;
-        y_c = y_c_new;
-    }
-
-    // 分配返回数组（调用者使用后需释放）
-    float* angle = (float*)malloc(2 * sizeof(float));
-    if(angle == NULL) {
-        printf("Memory allocation error.\n");
-        exit(-1);
-    }
-    angle[0] = (float)theta1;
-    angle[1] = (float)theta4;
-
-    // 输出最终求得的角度值
-    printf("最终求得：\n");
-    printf("  舵机1角度 (θ₁) = %f rad\n", theta1);
-    printf("  舵机4角度 (θ₄) = %f rad\n", theta4);
-
+    /************* 返回计算结果 ******************/
+    angle[0] = phi1;
+    angle[1] = phi4;
     return angle;
 }
 
