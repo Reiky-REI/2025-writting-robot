@@ -1,0 +1,149 @@
+# 忽略CMake生成的缓存文件和目录
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CMakeScripts/
+
+# 忽略编译和构建过程中生成的文件
+Makefile
+install_manifest.txt
+CTestTestfile.cmake
+CompilationDatabase.json
+build
+
+# 忽略 VSCode 生成的 json 文件（如果不需要跟踪）
+.vscode/*.json
+# pythonhit
+**/__pycache__
+
+# SolidWorks 模型文件
+*.sldprt
+*.SLDPRT
+*.sldasm
+*.SLDASM
+*.slddrw
+*.SLDDRW
+*.slddrt
+*.SLDDRT
+*.sldblk
+*.SLDBLK
+
+# 其他常见模型文件格式
+*.stl
+*.STL
+*.obj
+*.OBJ
+*.fbx
+*.FBX
+*.dxf
+*.DXF
+*.step
+*.STEP
+*.stp
+*.STP
+*.iges
+*.IGES
+*.igs
+*.IGS
+*.x_t
+*.X_T
+*.x_b
+*.X_B
+*.3ds
+*.3DS
+*.skp
+*.SKP
+*.blend
+*.BLEND
+*.dwg
+*.DWG
+*.ipt
+*.IPT
+*.iam
+*.IAM
+
+# 压缩文件
+*.zip
+*.ZIP
+*.rar
+*.RAR
+*.7z
+*.7Z
+*.tar
+*.TAR
+*.gz
+*.GZ
+*.tar.gz
+*.TAR.GZ
+
+# 图片文件（大尺寸）
+*.png
+*.PNG
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.bmp
+*.BMP
+*.tiff
+*.TIFF
+*.gif
+*.GIF
+
+# 视频文件
+*.mp4
+*.MP4
+*.avi
+*.AVI
+*.mov
+*.MOV
+*.wmv
+*.WMV
+*.flv
+*.FLV
+
+# 音频文件
+*.mp3
+*.MP3
+*.wav
+*.WAV
+*.flac
+*.FLAC
+
+# 可执行文件
+*.exe
+*.EXE
+*.dll
+*.DLL
+*.so
+*.SO
+*.dylib
+*.DYLIB
+
+# 数据库文件
+*.db
+*.DB
+*.sqlite
+*.SQLITE
+*.sqlite3
+*.SQLITE3
+
+# 大型数据文件
+*.csv
+*.CSV
+*.xlsx
+*.XLSX
+*.xls
+*.XLS
+*.pdf
+*.PDF
+
+# 临时文件和缓存
+*.tmp
+*.TMP
+*.temp
+*.TEMP
+*.cache
+*.CACHE
+*.log
+*.LOG
